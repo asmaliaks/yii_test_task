@@ -50,13 +50,90 @@ class SiteController extends Controller
 
     public function actionIndex(){ 
         $query = Staff::find();
-        $employees = $query->orderBy('birth_date')
+        $employees = $query->orderBy('id')
             ->all();
         return $this->render('index',[
             'employees'=>$employees,
         ]);
     }
 
+    public function actionSort(){
+                // get request
+        $request = Yii::$app->request;
+        // check request if it's came from ajax 
+        if($request->isAjax){
+            $post = $request->post();
+            $query = Staff::find();
+            switch ($post['direction']) {
+                case 'asc':
+                    $employees = $query->orderBy([$post['field'] => SORT_ASC ])->asArray()
+                    ->all();
+                    break;
+                case 'desc':
+                    $employees = $query->orderBy([$post['field'] => SORT_DESC ])->asArray()
+                    ->all();
+                    break;
+                default:
+                    $employees = $query->orderBy([$post['field'] => SORT_ASC ])->asArray()
+                    ->all();
+                    break;
+            }
+            
+            if(($post['field'] == 'first_name' && $post['direction'] == 'asc') || ($post['field'] != 'first_name')){
+                $firstNameSortStr = "<th id=\"first_name\" onclick=\"sort('first_name', 'asc')\" style=\"cursor: pointer\">"
+                        . "First name"
+                        . "</th>";
+            }else if($post['field'] == 'first_name' && $post['direction'] == 'desc'){
+                $firstNameSortStr = "<th id=\"first_name\" onclick=\"sort('first_name', 'desc')\" style=\"cursor: pointer\">"
+                        . "First name"
+                        . "</th>";
+            }
+            
+            if(($post['field'] == 'surname' && $post['direction'] == 'asc') || ($post['field'] != 'surname')){
+                $surnameSortStr = "<th id=\"surname\" onclick=\"sort('surname', 'asc')\" style=\"cursor: pointer\">"
+                        . "Surname"
+                        . "</th>";
+            }else if($post['field'] == 'surname' && $post['direction'] == 'desc'){
+                $surnameSortStr = "<th id=\"surname\" onclick=\"sort('surname', 'desc')\" style=\"cursor: pointer\">"
+                        . "Surname"
+                        . "</th>";
+            }
+            
+            if(($post['field'] == 'birth_date' && $post['direction'] == 'asc') || ($post['field'] != 'birth_date')){
+                $birthDateSortStr = "<th id=\"birth_date\" onclick=\"sort('birth_date', 'asc')\" style=\"cursor: pointer\">"
+                        . "Date of Birth"
+                        . "</th>";
+            }else if($post['field'] == 'birth_date' && $post['direction'] == 'desc'){
+                $birthDateSortStr = "<th id=\"birth_date\" onclick=\"sort('birth_date', 'desc')\" style=\"cursor: pointer\">"
+                        . "Date of Birth"
+                        . "</th>";    
+            }
+            
+            if(($post['field'] == 'salary' && $post['direction'] == 'asc') || ($post['field'] != 'salary')){
+                $salarySortStr = "<th id=\"salary\" onclick=\"sort('salary', 'asc')\" style=\"cursor: pointer\">"
+                        . "Salary"
+                        . "</th>";
+            }else{
+                $salarySortStr = "<th id=\"salary\" onclick=\"sort('salary', 'desc')\" style=\"cursor: pointer\">"
+                        . "Salary"
+                        . "</th>";
+            }
+            $stringHead = "<table id=\"staffTbl\" class=\"table table-bordered\">"
+                    . "<tr>".$firstNameSortStr.$surnameSortStr.$birthDateSortStr.$salarySortStr
+                    . "</tr>"
+                    . "</table>";
+            $n = 0;
+            foreach($employees as $employee){
+                if($n == 0){
+                    $stringBody = "<tr id=\"".$employee['id']."\" ondblclick=\"openEditModal(".$employee['id'].")\" onclick=\"\">"
+                            . "</tr>";
+                }
+            } 
+                    
+            print_r($employees);exit;
+        }
+    }
+    
     public function actionAddEmployee(){
         // get request
         $request = Yii::$app->request;
@@ -77,14 +154,34 @@ class SiteController extends Controller
             if($res){
                 $newEmployee = Staff::find()->where(array('id'=>$lastInsertID))->asArray()->one();
                 $date = new \DateTime($newEmployee['birth_date']);
-                $string = "<tr id=\"".$lastInsertID."\" ><td>".$newEmployee['first_name']."</td><td>".$newEmployee['surname']."</td><td>".$date->format('d M Y')."</td><td>".$newEmployee['salary']." RUB</td></tr>";
-                print_r($string);exit;
+                $ar = array(
+                    "id"=>$lastInsertID,
+                    "first_name"=>$newEmployee['first_name'],
+                    "birth_date"=>$date->format('d M Y'),
+                    "surname"=>$newEmployee['surname'],
+                    "salary"=>$newEmployee['salary'],
+                );
+                print_r(json_encode($ar));exit;
             }else{
                 print_r('false');exit;
             }
             
         }
 
+    }
+    
+    public function actionRemoveEmployee(){
+        // get request
+        $request = Yii::$app->request;
+        // check request if it's came from ajax 
+        if($request->isAjax){
+            $post = $request->post();
+            $employee = Staff::findOne($post['id']);
+            $res = $employee->delete();
+            if($res == 1){
+                print_r('true');exit;
+            }
+        }    
     }
     
     public function actionEditEmployee(){
@@ -103,8 +200,16 @@ class SiteController extends Controller
             $res = $employee->save();
             $birthDate = new \DateTime($employee->birth_date);
             if($res){
-                $string = '<td>'.$post['firstName'].'</td><td>'.$post['surname'].'</td><td>'.$birthDate->format('d M Y') .'</td><td>'.$post['salary'].' RUB</td>';
-                print_r($string);exit;
+               
+                $ar = array(
+                    "id"=>$post['id'],
+                    "surname"=>$post['surname'],
+                    "first_name"=>$post['firstName'],
+                    "birth_date"=>$birthDate->format('d M Y'),
+                    "salary"=>$post["salary"],
+                );
+                $jsonString = json_encode($ar);
+                print_r($jsonString);exit;
             }else{
                 print_r('false');exit;
             }

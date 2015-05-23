@@ -2,40 +2,56 @@
 /* @var $this yii\web\View */
 $this->title = 'Test task for SCAND';
 ?>
+<script>
+        var employeers = new Array();
+        var currentEmployee;
+</script>    
 <div class="site-index">
     <div class="container">
         <div class="row">
             <div class="col-lg-12">
                 <div class="table-responsive">
                     <table id="staffTbl" class="table table-bordered">
-                        <caption>Company staff</caption>
                         <tr>
-                            <th>First name</th>
-                            <th>Surname</th>
-                            <th>Date of Birth</th>
-                            <th>Salary</th>
+                            <th id="first_name" onclick="sort('first_name', 'asc')" style="cursor: pointer">
+                                First name
+                            </th>
+                            <th id="surnname" onclick="sort('surname', 'asc')" style="cursor: pointer">
+                                Surname
+                            </th>
+                            <th id="birth_date" onclick="sort('birth_date', 'asc')" style="cursor: pointer">
+                                Date of Birth
+                            </th>
+                            <th id="salary" onclick="sort('salary', 'asc')" style="cursor: pointer">
+                                Salary
+                            </th>
                         </tr>
                         <?php foreach($employees as $employee){?>
-                            <tr id="<?= $employee->id ?>" onclick="checkRow(<?= $employee->id ?>)" style="cursor: pointer">
+                        <script>
+                            employeers.push({
+                                id: <?=$employee['id'] ?>,
+                                first_name: '<?=$employee['first_name'] ?>',
+                                surname: '<?= $employee['surname'] ?>',
+                                birth_date: '<?= $employee['birth_date'] ?>',
+                                salary: <?= $employee['salary'] ?>
+                            })
+                        </script>
+                            <tr id="employeeRow<?= $employee->id ?>" ondblclick="openEditModal()" onclick="checkRow(<?= $employee->id ?>)" style="cursor: pointer">
                                 <td >
                                     <?= $employee->first_name ?>
-                                    <input id="hiddenFirstName<?= $employee->id ?>" type="hidden" value="<?= $employee->first_name ?>">
                                 </td>
                                 <td >
                                     <?= $employee->surname ?>
-                                    <input id="hiddenSurname<?= $employee->id ?>" type="hidden" value="<?= $employee->surname ?>">
                                 </td>
                                 <td >
                                     <?php $date = new DateTime($employee->birth_date); ?>
                                     <?= $date->format('d M Y');  ?>
-                                    <input id="hiddenBirthDate<?= $employee->id ?>" type="hidden" value="<?= $date->format('m/d/Y') ?>">
                                 </td>
                                 <td >
                                     <?= $employee->salary?> RUB
-                                    <input type="radio" id="radio<?= $employee->id ?>" style="display: none" value="<?= $employee->id ?>">
-                                    <input id="hiddenSalary<?= $employee->id ?>" type="hidden" value="<?= $employee->salary ?>">
                                 </td>
-                            </tr>    
+                            </tr> 
+                            
                         <?php } ?>
                         
                     </table>
@@ -48,7 +64,7 @@ $this->title = 'Test task for SCAND';
                 <button class="btn btn-primary" data-toggle="modal" data-target="#createFormModal">Add</button>
             </div>    
             <div class="col-lg-2">
-                <button class="btn btn-primary" data-toggle="modal" data-target="#editFormModal">Edit</button>
+                <button class="btn btn-primary" onclick="openEditModal()">Edit</button>
             </div>    
             <div class="col-lg-2">
                 <button id="deleteButton" class="btn btn-primary" onclick="removeEmployee()">Delete</button>
@@ -131,38 +147,139 @@ $this->title = 'Test task for SCAND';
     </div>
   </div>
 </div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 <script>
-function removeEmployee(id){
-    if(!id){
+//$(document).ready(function(){
+//    $( "#staffTbl tr:not(:first-child)" ).dblclick(function() {
+//    
+//        window.getSelection().removeAllRanges();
+//        $('#editFormModal').modal('show');
+//    
+//});
+
+    $(document).keydown(function(e) {
+        var previousRow;
+        var nextRow;
+        switch(e.which) {
+            // up
+            case 38: console.log('up');
+                
+                e.preventDefault();
+
+                previousRow = $('#employeeRow'+currentEmployee.id).prev().prev();
+                if(previousRow.attr('id').indexOf("employeeRow") != -1) {
+                    var strId = "employeeRow";
+                    var strIdLn = strId.length;
+                    console.log(previousRow.attr('id').substr(strIdLn));
+                    
+                    checkRow(parseInt(previousRow.attr('id').substr(strIdLn)));
+                    previousRow.addClass('active');
+                }
+
+            break;
+            // down
+            case 40: console.log('down');
+                e.preventDefault();
+                
+                nextRow = $('#employeeRow'+currentEmployee.id).next().next();
+                if(nextRow.attr('id').indexOf("employeeRow") != -1) {
+                    var strId = "employeeRow";
+                    var strIdLn = strId.length;
+                    console.log(nextRow.attr('id').substr(strIdLn));
+                    
+                    checkRow(parseInt(nextRow.attr('id').substr(strIdLn)));
+                    nextRow.addClass('active');
+                }
+
+            break;
+            // delete
+            case 46:
+                removeEmployee();
+            break;
+            default: ; // exit this handler for other keys
+        }
+
+    });
+//    });
+
+function sort(field, direction){
+    $.ajax({
+       type: "post", 
+       url: '?r=site/sort',
+       data: {
+           field: field,
+           direction: direction
+       },
+       success: function(data) {
+           
+       }
+    });
+}
+
+function openEditModal(){
+
+    $('#editFormModal').modal('show');
+
+    var birthDate = currentEmployee.birth_date;
+    var date = new Date(birthDate);
+    console.log(currentEmployee);
+    
+    var month = date.getMonth()+1;
+    month = addZero(month);
+    var year = date.getFullYear();
+    var day = date.getDate();
+    day = addZero(day);
+
+    currentEmployee.birth_date = year+"-"+month+"-"+day;console.log(currentEmployee.birth_date);
+    //sconsole.log(currentEmployee);
+    $('#employeeId').val(currentEmployee.id);
+    $('#editFirstName').val(currentEmployee.first_name);
+    $('#editSurname').val(currentEmployee.surname);
+    $('#editBirhtDate').val(currentEmployee.birth_date);
+    $('#editSalary').val(currentEmployee.salary);
+}    
+function addZero(n){
+    
+    if(n <= 9){
+        n = "0"+n;
+        return n;
+    }else if(n > 9){
+        return n;
+    }
+}  
+function removeEmployee(){
+    console.log(employeers);
+    console.log(currentEmployee);
+    if(!currentEmployee){
         alert("Please choose an employee");
     }else{
         $.ajax({
            type: "post", 
            url: '?r=site/remove-employee',
            data: {
-               id: id
+               id: currentEmployee.id
            },
            success: function(data) {
-               if(data != 'false'){
-                   $('tr#'+id).remove();
-                   $('#editFormModal').modal('hide');
+               if(data == 'true'){
+                   $('#employeeRow'+currentEmployee.id).remove();
+                   
+                    $.each(employeers, function(el, i){
+                        if (this.id == currentEmployee.id){
+                            employeers.splice(i, 1);
+                        }
+                    });
                }
            }
         });
     }
 }
 function editEmployee(){
-    var id = $('#employeeId').val(); 
-    var firstName = $('#hiddenFirstName'+id).val();
-    var surname = $('#hiddenSurname'+id).val();
-    var birthDate = $('#hiddenBirthDate'+id).val();
-    var salary = $('#hiddenSalary'+id).val();
-    
-    
+
     var firstName = $('#editFirstName').val();
     var surname = $('#editSurname').val();
     var birthDate = $('#editBirhtDate').val();
     var salary = $('#editSalary').val();    
+    var id = currentEmployee.id;    
    
     
     $.ajax({
@@ -175,38 +292,43 @@ function editEmployee(){
            salary: salary,
            id: id
        },
-       success: function(data) {console.log(data);
+       success: function(data) {
+           data = JSON.parse(data);
+           console.log(data);
            if(data != 'false'){
-               $('tr#'+id).html(data);
-               $('#editFormModal').modal('hide');
+                $('#employeeRow'+currentEmployee.id).html('');
+                $('#employeeRow'+currentEmployee.id).html('<td>'+data.first_name+'</td><td>'+data.surname+'</td><td>'+data.birth_date+'</td><td>'+data.salary+' RUB</td>');
+                var birthDate = data.birth_date;
+                var date = new Date(birthDate);
+                console.log(date);
+
+                var month = date.getMonth()+1;
+                month = addZero(month);
+                var year = date.getFullYear();
+                var day = date.getDate();
+                day = addZero(day);
+
+                currentEmployee.birth_date = year+"-"+month+"-"+day;
+                currentEmployee.surname = data.surname;
+//                currentEmployee.birth_date = data.birth_date;
+                currentEmployee.first_name = data.first_name;
+                currentEmployee.salary = data.salary;
+                $('#editFormModal').modal('hide');
            }
        }
     });
 }    
     
 // check row and fill the table with it's values    
-function checkRow(id){
-    // uncheck posible cases
-    $('td input[type=radio]').attr('checked', false);
-    $('table#staffTbl tr').removeClass("active");
-    // add a function to delete button
-    $('#deleteButton').attr("onclick","removeEmployee("+id+")");
-    // check clicked row
-    $('#radio'+id).attr('checked',true);
-    $('tr#'+id).attr('class', 'active');
-    // get values from the checked row
-    var firstName = $('#hiddenFirstName'+id).val();
-    var surname = $('#hiddenSurname'+id).val();
-    var birthDate = $('#hiddenBirthDate'+id).val();
-    var dateParts = birthDate.split('/');
-    var employesDate = dateParts[2]+"-"+dateParts[0]+"-"+dateParts[1];
-    var salary = $('#hiddenSalary'+id).val();
-    // fill the edit form with the row's values
-    $('#employeeId').val(id);
-    $('#editFirstName').val(firstName);
-    $('#editSurname').val(surname);
-    $('#editBirhtDate').val(employesDate);
-    $('#editSalary').val(salary);
+function checkRow(id){console.log("checkRow id:"+ id);
+$('table#staffTbl tr').removeClass("active");
+    for(var employeeIdx in employeers){
+        var employee = employeers[employeeIdx];
+        if(employee.id == id){
+            $('#employeeRow'+id).attr('class', 'active');
+            currentEmployee = employee;
+        }
+    }
 }    
     
 function addEmployee(){
@@ -225,8 +347,14 @@ function addEmployee(){
            salary: salary
        },
        success: function(data) {
+           data = JSON.parse(data);
+           console.log(data);
             if(data != 'false'){
-                $('#staffTbl').append(data);
+                employeers.push(data);
+                $('#staffTbl tbody').append("<style></style>");
+                var strToAppend = "<tr id=\"employeeRow"+data.id+"\" ondblclick=\"openEditModal("+data.id+")\" onclick=\"checkRow("+data.id+")\" style=\"cursor: pointer\"><td>"+data.first_name+"</td><td>"+data.surname+"</td><td>"+data.birth_date   +"</td><td>"+data.salary+"</td></tr>";
+
+                $('#staffTbl tbody').append(strToAppend);
                 $('#createFormModal').modal('hide');
                 $('#addForm input').val('');
             }
