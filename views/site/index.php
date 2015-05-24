@@ -158,7 +158,7 @@ $this->title = 'Test task for SCAND';
     </div>
   </div>
 </div>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
 <script>
     $(document).keydown(function(e) {
         var previousRow;
@@ -471,7 +471,6 @@ function editEmployee(){
 
                 currentEmployee.birth_date = year+"-"+month+"-"+day;
                 currentEmployee.surname = data.surname;
-//                currentEmployee.birth_date = data.birth_date;
                 currentEmployee.first_name = data.first_name;
                 currentEmployee.salary = data.salary;
                 $('#editFormModal').modal('hide');
@@ -512,7 +511,14 @@ function addEmployee(){
             if(data != 'false'){
                 employeers.push(data);
                 $('#staffTbl tbody').append("<style></style>");
-                var strToAppend = "<tr id=\"employeeRow"+data.id+"\" ondblclick=\"openEditModal("+data.id+")\" onclick=\"checkRow("+data.id+")\" style=\"cursor: pointer\"><td>"+data.first_name+"</td><td>"+data.surname+"</td><td>"+data.birth_date   +"</td><td>"+data.salary+" RUB</td></tr>";
+                var strToAppend = "<tr id=\"employeeRow"+data.id+"\" \n\
+                                    ondblclick=\"openEditModal("+data.id+")\" onclick=\"checkRow("+data.id+")\"\n\
+                                    style=\"cursor: pointer\">\n\
+                                    <td>"+data.first_name+"</td>\n\
+                                    <td>"+data.surname+"</td>\n\
+                                    <td>"+data.birth_date   +"</td>\n\
+                                    <td>"+data.salary+" RUB</td>\n\
+                                    </tr>";
 
                 $('#staffTbl tbody').append(strToAppend);
                 $('#createFormModal').modal('hide');
