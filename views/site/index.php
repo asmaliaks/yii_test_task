@@ -5,24 +5,35 @@ $this->title = 'Test task for SCAND';
 <script>
         var employeers = new Array();
         var currentEmployee;
+        var sortingDirection;
+        sortingDirection = {
+            first_name: 1,
+            surname: 1,
+            birth_date: 1,
+            salary: 1
+        };
+        var months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Okt","Nov","Dec"];
+       
+            
+
 </script>    
 <div class="site-index">
     <div class="container">
         <div class="row">
             <div class="col-lg-12">
-                <div class="table-responsive">
+                <div class="table-responsive" id="divForTable">
                     <table id="staffTbl" class="table table-bordered">
                         <tr>
-                            <th id="first_name" onclick="sort('first_name', 'asc')" style="cursor: pointer">
+                            <th id="first_name" onclick="sortTable('first_name')" style="cursor: pointer">
                                 First name
                             </th>
-                            <th id="surnname" onclick="sort('surname', 'asc')" style="cursor: pointer">
+                            <th id="surnname" onclick="sortTable('surname')" style="cursor: pointer">
                                 Surname
                             </th>
-                            <th id="birth_date" onclick="sort('birth_date', 'asc')" style="cursor: pointer">
+                            <th id="birth_date" onclick="sortTable('birth_date')" style="cursor: pointer">
                                 Date of Birth
                             </th>
-                            <th id="salary" onclick="sort('salary', 'asc')" style="cursor: pointer">
+                            <th id="salary" onclick="sortTable('salary')" style="cursor: pointer">
                                 Salary
                             </th>
                         </tr>
@@ -149,28 +160,20 @@ $this->title = 'Test task for SCAND';
 </div>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 <script>
-//$(document).ready(function(){
-//    $( "#staffTbl tr:not(:first-child)" ).dblclick(function() {
-//    
-//        window.getSelection().removeAllRanges();
-//        $('#editFormModal').modal('show');
-//    
-//});
-
     $(document).keydown(function(e) {
         var previousRow;
         var nextRow;
         switch(e.which) {
             // up
-            case 38: console.log('up');
+            case 38: 
                 
                 e.preventDefault();
 
                 previousRow = $('#employeeRow'+currentEmployee.id).prev().prev();
+                console.log();
                 if(previousRow.attr('id').indexOf("employeeRow") != -1) {
                     var strId = "employeeRow";
                     var strIdLn = strId.length;
-                    console.log(previousRow.attr('id').substr(strIdLn));
                     
                     checkRow(parseInt(previousRow.attr('id').substr(strIdLn)));
                     previousRow.addClass('active');
@@ -178,14 +181,13 @@ $this->title = 'Test task for SCAND';
 
             break;
             // down
-            case 40: console.log('down');
+            case 40:
                 e.preventDefault();
                 
                 nextRow = $('#employeeRow'+currentEmployee.id).next().next();
                 if(nextRow.attr('id').indexOf("employeeRow") != -1) {
                     var strId = "employeeRow";
                     var strIdLn = strId.length;
-                    console.log(nextRow.attr('id').substr(strIdLn));
                     
                     checkRow(parseInt(nextRow.attr('id').substr(strIdLn)));
                     nextRow.addClass('active');
@@ -196,33 +198,150 @@ $this->title = 'Test task for SCAND';
             case 46:
                 removeEmployee();
             break;
-            default: ; // exit this handler for other keys
+            default: ; 
         }
 
     });
 //    });
 
-function sort(field, direction){
-    $.ajax({
-       type: "post", 
-       url: '?r=site/sort',
-       data: {
-           field: field,
-           direction: direction
-       },
-       success: function(data) {
-           
-       }
-    });
+function sortTable(field){
+    var sortedEmployeers;
+    //sortedEmployeers = employeers.sort(sortBy('first_name',1));
+
+    switch(field) {
+            
+        case 'first_name': 
+             if(sortingDirection.first_name == 1){
+                sortedEmployeers = employeers.sort(sortBy('first_name'));
+            }else{
+                sortedEmployeers = employeers.sort(sortBy('first_name',-1));
+            }
+        break;
+        case 'surname':
+            if(sortingDirection.surname == 1){
+                sortedEmployeers = employeers.sort(sortBy('surname'));
+            }else{
+                sortedEmployeers = employeers.sort(sortBy('surname',-1));
+            }
+        break;
+        case 'birth_date':
+            if(sortingDirection.birth_date == 1){
+                sortedEmployeers = employeers.sort(sortBy('birth_date'));
+            }else{
+                sortedEmployeers = employeers.sort(sortBy('birth_date',-1));
+            }
+        break;
+        case 'salary':
+            if(sortingDirection.salary == 1){
+                sortedEmployeers = employeers.sort(sortBy('salary'));
+            }else{
+                sortedEmployeers = employeers.sort(sortBy('salary',-1));
+            }
+        break;
+        default: ;
+            
+        }
+        
+    var firstNameCol, surnameCol, birthDate, salary;
+
+    if(field == 'first_name' && sortingDirection.first_name == 1){
+        firstNameCol = "<th id=\"first_name\" onclick=\"sortTable('first_name')\" style=\"cursor: pointer\">First name &darr;</th>";
+        sortingDirection.first_name = -1;
+        sortingDirection.surname = 1;
+        sortingDirection.birth_date = 1;
+        sortingDirection.salary = 1;
+    }else if(field == 'first_name' && sortingDirection.first_name == -1){
+        firstNameCol = "<th id=\"first_name\" onclick=\"sortTable('first_name')\" style=\"cursor: pointer\">First name &uarr;</th>";
+        sortingDirection.first_name = 1;
+        sortingDirection.surname = 1;
+        sortingDirection.birth_date = 1;
+        sortingDirection.salary = 1;
+    }else if(field != 'first_name'){
+        firstNameCol = "<th id=\"first_name\" onclick=\"sortTable('first_name')\" style=\"cursor: pointer\">First name</th>";
+
+    }
+    
+    if(field == 'surname' && sortingDirection.surname == 1){
+        surnameCol = "<th id=\"surname\" onclick=\"sortTable('surname')\" style=\"cursor: pointer\">Surname &darr;</th>";
+        sortingDirection.first_name = 1;
+        sortingDirection.surname = -1;
+        sortingDirection.birth_date = 1;
+        sortingDirection.salary = 1;
+    }else if(field == 'surname' && sortingDirection.surname == -1){
+        surnameCol = "<th id=\"surname\" onclick=\"sortTable('surname')\" style=\"cursor: pointer\">Surname &uarr;</th>";
+        sortingDirection.first_name = 1;
+        sortingDirection.surname = 1;
+        sortingDirection.birth_date = 1;
+        sortingDirection.salary = 1;
+    }else if(field != 'surname'){
+        surnameCol = "<th id=\"surname\" onclick=\"sortTable('surname')\" style=\"cursor: pointer\">Surname</th>";
+
+    }
+    
+    if(field == 'birth_date' && sortingDirection.birth_date == 1){
+        birthDate = "<th id=\"birth_date\" onclick=\"sortTable('birth_date')\" style=\"cursor: pointer\">Date of birth &darr;</th>";
+        sortingDirection.first_name = 1;
+        sortingDirection.surname = 1;
+        sortingDirection.birth_date = -1;
+        sortingDirection.salary = 1;
+    }else if(field == 'birth_date' && sortingDirection.birth_date == -1){
+        birthDate = "<th id=\"birth_date\" onclick=\"sortTable('birth_date')\" style=\"cursor: pointer\">Date of birth &uarr;</th>";
+        sortingDirection.first_name = 1;
+        sortingDirection.surname = 1;
+        sortingDirection.birth_date = 1;
+        sortingDirection.salary = 1;
+    }else if(field != 'birth_date'){
+        birthDate = "<th id=\"birth_date\" onclick=\"sortTable('birth_date')\" style=\"cursor: pointer\">Date of birth</th>";
+    }
+    
+    if(field == 'salary' && sortingDirection.salary == 1){
+        salary = "<th id=\"salary\" onclick=\"sortTable('salary')\" style=\"cursor: pointer\">Salary &darr;</th>";
+        sortingDirection.first_name = 1;
+        sortingDirection.surname = 1;
+        sortingDirection.birth_date = 1;
+        sortingDirection.salary = -1;
+    }else if(field == 'salary' && sortingDirection.salary == -1){
+        salary = "<th id=\"salary\" onclick=\"sortTable('salary')\" style=\"cursor: pointer\">Salary &uarr;</th>";
+        sortingDirection.first_name = 1;
+        sortingDirection.surname = 1;
+        sortingDirection.birth_date = 1;
+        sortingDirection.salary = 1;
+    }else if(field != 'salary'){
+        salary = "<th id=\"salary\" onclick=\"sortTable('salary')\" style=\"cursor: pointer\">Salary</th>";
+
+    }    
+
+    var sortedTbl = repaintTable(employeers, firstNameCol, surnameCol, birthDate, salary);
+                        
+   $('#staffTbl').remove();                     
+   $('#divForTable').append(sortedTbl); 
 }
 
+function sortBy(key, reverse) {
+
+  var moveSmaller = reverse ? 1 : -1;
+
+ 
+  var moveLarger = reverse ? -1 : 1;
+
+ 
+  return function(a, b) {
+    if (a[key] < b[key]) {
+      return moveSmaller;
+    }
+    if (a[key] > b[key]) {
+      return moveLarger;
+    }
+    return 0;
+  };
+
+}
 function openEditModal(){
 
     $('#editFormModal').modal('show');
 
     var birthDate = currentEmployee.birth_date;
     var date = new Date(birthDate);
-    console.log(currentEmployee);
     
     var month = date.getMonth()+1;
     month = addZero(month);
@@ -230,7 +349,7 @@ function openEditModal(){
     var day = date.getDate();
     day = addZero(day);
 
-    currentEmployee.birth_date = year+"-"+month+"-"+day;console.log(currentEmployee.birth_date);
+    currentEmployee.birth_date = year+"-"+month+"-"+day;
     //sconsole.log(currentEmployee);
     $('#employeeId').val(currentEmployee.id);
     $('#editFirstName').val(currentEmployee.first_name);
@@ -248,8 +367,7 @@ function addZero(n){
     }
 }  
 function removeEmployee(){
-    console.log(employeers);
-    console.log(currentEmployee);
+
     if(!currentEmployee){
         alert("Please choose an employee");
     }else{
@@ -266,12 +384,55 @@ function removeEmployee(){
                     $.each(employeers, function(el, i){
                         if (this.id == currentEmployee.id){
                             employeers.splice(i, 1);
+                            var firstNameCol, surnameCol, birthDate, salary;
+                            firstNameCol = "<th id=\"first_name\" onclick=\"sortTable('first_name')\" style=\"cursor: pointer\">First name</th>";
+                            surnameCol = "<th id=\"surname\" onclick=\"sortTable('surname')\" style=\"cursor: pointer\">Surname</th>";
+                            birthDate = "<th id=\"birth_date\" onclick=\"sortTable('birth_date')\" style=\"cursor: pointer\">Date of birth</th>";
+                            salary = "<th id=\"salary\" onclick=\"sortTable('salary')\" style=\"cursor: pointer\">Salary</th>";
+                            var tblAfterRemoving = repaintTable(employeers, firstNameCol, surnameCol, birthDate, salary);
+
+                           $('#staffTbl').remove();                     
+                           $('#divForTable').append(tblAfterRemoving); 
                         }
                     });
                }
            }
         });
     }
+}
+function repaintTable(obj, firstNameCol, surnameCol, birthDate, salary){
+    var bodyStr, k;
+    bodyStr = '';
+    for (k = 0; k < obj.length; ++k) {
+        var date = new Date(obj[k].birth_date);
+
+        var month = date.getMonth();
+        var year = date.getFullYear();
+        var day = date.getDate();
+        day = addZero(day);
+
+        month = months[month];
+
+        var tblDate = day+" "+month+" "+year;
+
+        bodyStr = bodyStr+"<style></style><tr id=\"employeeRow"+obj[k].id+"\" ondblclick=\"openEditModal()\" onclick=\"checkRow("+obj[k].id+")\" style=\"cursor: pointer\">\n\
+        <td>"+obj[k].first_name+"</td>\n\
+        <td>"+obj[k].surname+"</td>\n\
+        <td>"+tblDate+"</td>\n\
+        <td>"+obj[k].salary+" RUB</td>\n\
+        </tr>";
+    }
+
+
+    return "<table id=\"staffTbl\" class=\"table table-bordered\">\n\
+                    <tr>\n\
+                    "+firstNameCol+"\n\
+                    "+surnameCol+"\n\
+                    "+birthDate+"\n\
+                    "+salary+"\n\
+                    </tr> \n\
+                    "+bodyStr+"\n\
+                    </table>";
 }
 function editEmployee(){
 
@@ -294,7 +455,7 @@ function editEmployee(){
        },
        success: function(data) {
            data = JSON.parse(data);
-           console.log(data);
+
            if(data != 'false'){
                 $('#employeeRow'+currentEmployee.id).html('');
                 $('#employeeRow'+currentEmployee.id).html('<td>'+data.first_name+'</td><td>'+data.surname+'</td><td>'+data.birth_date+'</td><td>'+data.salary+' RUB</td>');
@@ -320,8 +481,8 @@ function editEmployee(){
 }    
     
 // check row and fill the table with it's values    
-function checkRow(id){console.log("checkRow id:"+ id);
-$('table#staffTbl tr').removeClass("active");
+function checkRow(id){ console.log(id);
+$('#staffTbl tr').removeClass("active");
     for(var employeeIdx in employeers){
         var employee = employeers[employeeIdx];
         if(employee.id == id){
@@ -348,11 +509,10 @@ function addEmployee(){
        },
        success: function(data) {
            data = JSON.parse(data);
-           console.log(data);
             if(data != 'false'){
                 employeers.push(data);
                 $('#staffTbl tbody').append("<style></style>");
-                var strToAppend = "<tr id=\"employeeRow"+data.id+"\" ondblclick=\"openEditModal("+data.id+")\" onclick=\"checkRow("+data.id+")\" style=\"cursor: pointer\"><td>"+data.first_name+"</td><td>"+data.surname+"</td><td>"+data.birth_date   +"</td><td>"+data.salary+"</td></tr>";
+                var strToAppend = "<tr id=\"employeeRow"+data.id+"\" ondblclick=\"openEditModal("+data.id+")\" onclick=\"checkRow("+data.id+")\" style=\"cursor: pointer\"><td>"+data.first_name+"</td><td>"+data.surname+"</td><td>"+data.birth_date   +"</td><td>"+data.salary+" RUB</td></tr>";
 
                 $('#staffTbl tbody').append(strToAppend);
                 $('#createFormModal').modal('hide');
